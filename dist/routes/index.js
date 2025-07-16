@@ -1,3 +1,6 @@
+const express = require('express');
+const router = (0, express_1.Router)();
+
 "use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -18,7 +21,7 @@ const activity_logs_1 = __importDefault(require("./activity_logs"));
 const email_templates_1 = __importDefault(require("./email_templates"));
 const system_settings_1 = __importDefault(require("./system_settings"));
 const admin_1 = __importDefault(require("./admin"));
-const router = (0, express_1.Router)();
+
 router.use('/quotations', quotations_1.default);
 router.use('/quotation_pieces', quotation_pieces_1.default);
 router.use('/admin_users', admin_users_1.default);
@@ -28,9 +31,10 @@ router.use('/pdf_templates', pdf_templates_1.default);
 router.use('/quotation_files', quotation_files_1.default);
 router.use('/material_options', material_options_1.default);
 router.use('/sink_options', sink_options_1.default);
-router.use('/pricing_rules', pricing_rules_1.default);
+router.use('/pricing_rules', require('./pricing_rules'));
 router.use('/activity_logs', activity_logs_1.default);
 router.use('/email_templates', email_templates_1.default);
 router.use('/system_settings', system_settings_1.default);
 router.use('/admin', admin_1.default);
 exports.default = router;
+module.exports = router;
