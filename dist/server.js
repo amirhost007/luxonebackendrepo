@@ -8,11 +8,12 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:3000'], // Add production domain if needed
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: ['https://luxoneonlinequotation.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
 
 app.use(express.json());
 
