@@ -1,21 +1,28 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
-const routes_1 = __importDefault(require("./routes"));
-dotenv_1.default.config();
-const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
-app.use(express_1.default.json());
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import routes from './routes';
+
+dotenv.config();
+
+const app = express();
+
+app.use(cors({
+  origin: ['http://localhost:3000'], // Add production domain if needed
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+app.use(express.json());
+
 app.get('/', (req, res) => {
-    res.send('Luxone Quotation System API');
+  res.send('Luxone Quotation System API');
 });
-app.use('/api', routes_1.default);
+
+app.use('/api', routes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
