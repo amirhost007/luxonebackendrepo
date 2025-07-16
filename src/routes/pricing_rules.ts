@@ -3,6 +3,32 @@ import { pool } from '../db';
 
 const router = Router();
 
+// Define the actual columns in the pricing_rules table
+const ALLOWED_FIELDS = [
+  'rule_name',
+  'rule_type', 
+  'category',
+  'condition_field',
+  'condition_value',
+  'price_value',
+  'unit',
+  'is_active',
+  'description',
+  'created_at',
+  'updated_at'
+];
+
+// Filter data to only include allowed fields
+const filterAllowedFields = (data: any) => {
+  const filtered: any = {};
+  ALLOWED_FIELDS.forEach(field => {
+    if (data[field] !== undefined) {
+      filtered[field] = data[field];
+    }
+  });
+  return filtered;
+};
+
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM pricing_rules');
@@ -26,7 +52,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const data = req.body;
+    const data = filterAllowedFields(req.body);
     const result = await pool.query('INSERT INTO pricing_rules SET ?', [data]);
     res.status(201).json({ id: (result[0] as any).insertId });
   } catch (err) {
@@ -36,7 +62,7 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const data = req.body;
+    const data = filterAllowedFields(req.body);
     const result = await pool.query('UPDATE pricing_rules SET ? WHERE id = ?', [data, req.params.id]);
     res.json({ affectedRows: (result[0] as any).affectedRows });
   } catch (err) {
