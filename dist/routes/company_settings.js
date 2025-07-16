@@ -67,27 +67,29 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ UPDATE by ID
-router.put('/:id', async (req, res) => {
-  try {
-    const data = {};
-    for (const key of allowedFields) {
-      if (req.body.hasOwnProperty(key)) {
-        data[key] = req.body[key];
+// ✅ PUT without ID for singleton config
+router.put('/', async (req, res) => {
+    try {
+      const id = 1; // or fetch dynamically if needed
+      const data = {};
+      for (const key of allowedFields) {
+        if (req.body.hasOwnProperty(key)) {
+          data[key] = req.body[key];
+        }
       }
+  
+      const result = await db_1.pool.query(
+        'UPDATE company_settings SET ? WHERE id = ?',
+        [data, id]
+      );
+  
+      res.json({ affectedRows: result[0].affectedRows });
+    } catch (err) {
+      console.error('Error on PUT /company_settings', err);
+      res.status(500).json({ error: 'Database error', message: err.message });
     }
-
-    const result = await db_1.pool.query(
-      'UPDATE company_settings SET ? WHERE id = ?',
-      [data, req.params.id]
-    );
-
-    res.json({ affectedRows: result[0].affectedRows });
-  } catch (err) {
-    console.error('Error on PUT /company_settings/:id', err);
-    res.status(500).json({ error: 'Database error', message: err.message, stack: err.stack });
-  }
-});
+  });
+  
 
 // ✅ DELETE by ID
 router.delete('/:id', async (req, res) => {
