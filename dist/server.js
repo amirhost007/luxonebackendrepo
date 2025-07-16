@@ -40,6 +40,10 @@ app.get('/', (req, res) => {
 
 app.use('/api', routes_1.default);
 
+app.put('/api/company_settings', (req, res) => {
+  // ...update logic here...
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
