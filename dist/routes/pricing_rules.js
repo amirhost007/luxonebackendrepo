@@ -6,7 +6,22 @@ const db_1 = require("../db");
 
 const router = (0, express_1.Router)();
 
-// GET all pricing rules
+// ✅ Define only valid columns based on your table
+const allowedFields = [
+  'rule_name',
+  'rule_type',
+  'category',
+  'condition_field',
+  'condition_value',
+  'price_value',
+  'unit',
+  'is_active',
+  'description',
+  'updated_at',
+  'value'
+];
+
+// ✅ GET all pricing rules
 router.get('/', async (req, res) => {
   try {
     const result = await db_1.pool.query('SELECT * FROM pricing_rules');
@@ -17,7 +32,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET a single pricing rule by ID
+// ✅ GET a single pricing rule by ID
 router.get('/:id', async (req, res) => {
   try {
     const result = await db_1.pool.query('SELECT * FROM pricing_rules WHERE id = ?', [req.params.id]);
@@ -29,10 +44,16 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// CREATE a new pricing rule
+// ✅ CREATE a new pricing rule
 router.post('/', async (req, res) => {
   try {
-    const data = req.body;
+    const data = {};
+    for (const key of allowedFields) {
+      if (req.body.hasOwnProperty(key)) {
+        data[key] = req.body[key];
+      }
+    }
+
     const result = await db_1.pool.query('INSERT INTO pricing_rules SET ?', [data]);
     res.status(201).json({ id: result[0].insertId });
   } catch (err) {
@@ -40,14 +61,15 @@ router.post('/', async (req, res) => {
   }
 });
 
-// UPDATE a pricing rule by ID
+// ✅ UPDATE a pricing rule by ID
 router.put('/:id', async (req, res) => {
   try {
-    const data = { ...req.body };
-
-    // Remove fields that should not be updated
-    delete data.id;
-    delete data.created_at;
+    const data = {};
+    for (const key of allowedFields) {
+      if (req.body.hasOwnProperty(key)) {
+        data[key] = req.body[key];
+      }
+    }
 
     const result = await db_1.pool.query(
       'UPDATE pricing_rules SET ? WHERE id = ?',
@@ -61,7 +83,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE a pricing rule by ID
+// ✅ DELETE a pricing rule by ID
 router.delete('/:id', async (req, res) => {
   try {
     const result = await db_1.pool.query('DELETE FROM pricing_rules WHERE id = ?', [req.params.id]);
