@@ -13,6 +13,7 @@ import activityLogsRouter from './activity_logs';
 import emailTemplatesRouter from './email_templates';
 import systemSettingsRouter from './system_settings';
 import adminRouter from './admin';
+import usersRouter from './users';
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use('/activity_logs', activityLogsRouter);
 router.use('/email_templates', emailTemplatesRouter);
 router.use('/system_settings', systemSettingsRouter);
 router.use('/admin', adminRouter);
+router.use('/users', usersRouter);
 
 export default router; 
