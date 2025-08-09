@@ -6,7 +6,23 @@ import routes from './routes';
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// Configure CORS to allow Vite dev server and optional environment origin
+const allowedOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || origin === allowedOrigin) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
+);
+
+// Handle preflight
+app.options('*', cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
