@@ -9,7 +9,20 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const routes_1 = __importDefault(require("./routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
+// Configure CORS to allow Vite dev server and optional environment origin
+const allowedOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+app.use((0, cors_1.default)({
+    origin: (origin, callback) => {
+        if (!origin || origin === allowedOrigin)
+            return callback(null, true);
+        return callback(new Error('Not allowed by CORS'));
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+}));
+// Handle preflight
+app.options('*', (0, cors_1.default)());
 app.use(express_1.default.json());
 app.get('/', (req, res) => {
     res.json({ message: 'Luxone Quotation System API', status: 'running' });
