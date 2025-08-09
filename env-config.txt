@@ -1,0 +1,22 @@
+# Database Configuration for Local Development
+# Copy this content to a .env file in the luxonebackendrepo directory
+
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=luxone_quotation_system
+DB_PORT=3306
+
+# JWT Secret
+JWT_SECRET=luxone_secret_key_2024
+
+# Server Configuration
+PORT=5000
+
+# Optional: Enable detailed logging
+NODE_ENV=development
+
+# Email Configuration (for quotation notifications)
+# Replace with your actual Gmail credentials
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password

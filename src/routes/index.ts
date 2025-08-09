@@ -17,6 +17,11 @@ import usersRouter from './users';
 
 const router = Router();
 
+// Test route to verify the API is working
+router.get('/', (req, res) => {
+  res.json({ message: 'API is working!', timestamp: new Date().toISOString() });
+});
+
 router.use('/quotations', quotationsRouter);
 router.use('/quotation_pieces', quotationPiecesRouter);
 router.use('/admin_users', adminUsersRouter);

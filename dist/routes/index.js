@@ -18,7 +18,12 @@ const activity_logs_1 = __importDefault(require("./activity_logs"));
 const email_templates_1 = __importDefault(require("./email_templates"));
 const system_settings_1 = __importDefault(require("./system_settings"));
 const admin_1 = __importDefault(require("./admin"));
+const users_1 = __importDefault(require("./users"));
 const router = (0, express_1.Router)();
+// Test route to verify the API is working
+router.get('/', (req, res) => {
+    res.json({ message: 'API is working!', timestamp: new Date().toISOString() });
+});
 router.use('/quotations', quotations_1.default);
 router.use('/quotation_pieces', quotation_pieces_1.default);
 router.use('/admin_users', admin_users_1.default);
@@ -33,4 +38,5 @@ router.use('/activity_logs', activity_logs_1.default);
 router.use('/email_templates', email_templates_1.default);
 router.use('/system_settings', system_settings_1.default);
 router.use('/admin', admin_1.default);
+router.use('/users', users_1.default);
 exports.default = router;

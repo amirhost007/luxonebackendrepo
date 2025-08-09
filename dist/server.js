@@ -12,7 +12,10 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.get('/', (req, res) => {
-    res.send('Luxone Quotation System API');
+    res.json({ message: 'Luxone Quotation System API', status: 'running' });
+});
+app.get('/health', (req, res) => {
+    res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 app.use('/api', routes_1.default);
 const PORT = process.env.PORT || 5000;

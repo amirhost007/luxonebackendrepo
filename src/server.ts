@@ -10,7 +10,11 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.send('Luxone Quotation System API');
+  res.json({ message: 'Luxone Quotation System API', status: 'running' });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
 app.use('/api', routes);
