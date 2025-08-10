@@ -1,19 +1,19 @@
 import { pool } from './src/db.js';
 
 const materials = [
-  // Standard Quartz (280 AED base cost)
+  // Standard Quartz (280 AED/sqm base cost)
   ['quartz', 'Golden River 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 280.00, true],
   ['quartz', 'The Grold 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 280.00, true],
-  ['quartz', 'Megistic White 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 280.00, true],
+  ['quartz', 'Megistic White 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 260.00, true],
   ['quartz', 'Royal Statuario 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 280.00, true],
   ['quartz', 'Universe Grey 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 280.00, true],
   ['quartz', 'Strike Light 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 280.00, true],
   ['quartz', 'Grey Leather 20mm Leather', 'Leather', '20mm', '5.12', 5.12, 280.00, true],
 
-  // Premium Quartz (320 AED base cost)
+  // Premium Quartz (320 AED/sqm base cost)
   ['quartz', 'White Pazzal 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 320.00, true],
   ['quartz', 'The Saint 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 320.00, true],
-  ['quartz', 'The Saint 20mm Matt', 'Matt', '20mm', '5.12', 5.12, 320.00, true],
+  ['quartz', 'The Saint 20mm Matt', 'Matt', '20mm', '5.12', 5.12, 350.00, true],
   ['quartz', 'Super Wave 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 320.00, true],
   ['quartz', 'White Beauty 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 320.00, true],
   ['quartz', 'Grey Wonder 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 320.00, true],
@@ -24,7 +24,7 @@ const materials = [
   ['quartz', 'Imperial White 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 320.00, true],
   ['quartz', 'Ambience Touch 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 320.00, true],
   ['quartz', 'Amazed Grey 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 320.00, true],
-  ['quartz', 'Moon White 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 320.00, true]
+  ['quartz', 'Moon White 20mm Polish', 'Polish', '20mm', '5.12', 5.12, 220.00, true]
 ];
 
 async function insertMaterials() {

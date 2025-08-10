@@ -14,6 +14,7 @@ import emailTemplatesRouter from './email_templates';
 import systemSettingsRouter from './system_settings';
 import adminRouter from './admin';
 import usersRouter from './users';
+import costManagementRouter from './cost_management';
 
 const router = Router();
 
@@ -37,5 +38,6 @@ router.use('/email_templates', emailTemplatesRouter);
 router.use('/system_settings', systemSettingsRouter);
 router.use('/admin', adminRouter);
 router.use('/users', usersRouter);
+router.use('/cost_management', costManagementRouter);
 
 export default router; 
