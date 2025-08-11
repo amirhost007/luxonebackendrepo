@@ -1,60 +1,55 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import routes from './routes';
 
 dotenv.config();
 
 const app = express();
 
-// CORS configuration to allow all origins
+const allowedOrigins = ['https://quotation.theluxone.com']; // your frontend domain(s)
+
 const corsOptions = {
-  origin: '*', // Allow all origins
-  credentials: false, // Set to false when using origin: '*'
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin) {
+      // Allow requests like Postman or server-to-server without origin
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-// Middleware: Log every request
-app.use((req, res, next) => {
-  console.log(`[${req.method}] ${req.originalUrl}`);
-  next();
-});
-
-// Enable CORS with explicit configuration
+// Use CORS middleware for all routes
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Handle preflight requests
 
-// Additional CORS headers for extra compatibility
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
+// Handle preflight OPTIONS requests globally with CORS headers and 204 status
+app.options('*', cors(corsOptions), (req, res) => {
+  res.sendStatus(204);
 });
 
-// Parse JSON
+// For JSON body parsing
 app.use(express.json());
 
-// API Routes
-app.use('/api', routes);
+// Simple test route
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'CORS is working!' });
+});
 
-// Error handler for CORS origin rejections
+// Generic error handler for CORS errors
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (err instanceof Error && err.message.startsWith('Origin')) {
-    return res.status(403).json({ error: err.message });
+  if (err && err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'CORS error: origin not allowed' });
   }
   next(err);
 });
 
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
