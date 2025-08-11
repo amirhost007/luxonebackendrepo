@@ -7,7 +7,15 @@ router.get('/', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM material_options');
     const rows = result[0] as any[];
-    res.json(rows);
+    
+    // Map color_name to name for frontend compatibility
+    const mappedRows = rows.map(row => ({
+      ...row,
+      name: row.color_name, // Add name field for frontend
+      category: row.type    // Add category field for frontend
+    }));
+    
+    res.json(mappedRows);
   } catch (err) {
     res.status(500).json({ error: 'Database error', details: err });
   }
