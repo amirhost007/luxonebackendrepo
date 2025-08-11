@@ -30,7 +30,7 @@ async function sendQuotationNotification(quotationData: Record<string, unknown>)
         <p><strong>Service Level:</strong> ${quotationData.service_level || 'N/A'}</p>
         <p><strong>Material Type:</strong> ${quotationData.material_type || 'N/A'}</p>
         <p><strong>Material Color:</strong> ${quotationData.material_color || 'N/A'}</p>
-        <p><strong>Project Type:</strong> ${quotationData.project_type || 'N/A'}</p>
+        // <p><strong>Project Type:</strong> ${quotationData.project_type || 'N/As'}</p>
         <p><strong>Timeline:</strong> ${quotationData.timeline || 'N/A'}</p>
         <p><strong>Additional Comments:</strong> ${quotationData.additional_comments || 'N/A'}</p>
         <p><strong>Total Amount:</strong> ${quotationData.total_amount ? `AED ${quotationData.total_amount}` : 'N/A'}</p>
