@@ -8,12 +8,12 @@ dotenv.config();
 const app = express();
 
 // CORS Options
-const corsOptions = {
-  origin: true, // Reflect request origin automatically
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
+// const corsOptions = {
+//   origin: true, // Reflect request origin automatically
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+// };
 
 // Middleware: Log every request
 app.use((req, res, next) => {
