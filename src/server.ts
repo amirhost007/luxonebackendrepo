@@ -7,26 +7,29 @@ dotenv.config();
 
 const app = express();
 
-// CORS is now configured to allow all origins
-
+// CORS Options
 const corsOptions = {
-  origin: true, // Allow all origins
+  origin: true, // Reflect request origin automatically
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-app.use(cors());             // <---- Add this before routes
-// app.options('*', cors(corsOptions));    // <---- Handle preflight OPTIONS requests
-
-app.use(express.json());
-
-app.use('/api', routes);
-
+// Middleware: Log every request
 app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.originalUrl}`);
   next();
 });
+
+// Enable CORS
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Handle preflight requests
+
+// Parse JSON
+app.use(express.json());
+
+// API Routes
+app.use('/api', routes);
 
 // Error handler for CORS origin rejections
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
