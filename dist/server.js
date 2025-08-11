@@ -14,7 +14,7 @@ const app = (0, express_1.default)();
 
 // Allowed frontend origins
 const allowedOrigins = [
-    "http://localhost:3000", // local dev
+    "http://localhost:5173", // local dev
     "https://luxoneonlinequotation.vercel.app", // vercel preview
     "https://quotation.theluxone.com" // production
 ];
