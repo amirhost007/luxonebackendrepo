@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 async function sendQuotationNotification(quotationData: Record<string, unknown>) {
   try {
     const mailOptions = {
-      from: process.env.EMAIL_USER || 'your-email@gmail.com',
+      from: process.env.EMAIL_USER || 'amiroxfordalld@gmail.com',
       to: 'amirhost007@gmail.com',
       subject: `New Quotation Request - ${quotationData.customer_name || 'Customer'}`,
       html: `
@@ -30,7 +30,7 @@ async function sendQuotationNotification(quotationData: Record<string, unknown>)
         <p><strong>Service Level:</strong> ${quotationData.service_level || 'N/A'}</p>
         <p><strong>Material Type:</strong> ${quotationData.material_type || 'N/A'}</p>
         <p><strong>Material Color:</strong> ${quotationData.material_color || 'N/A'}</p>
-        // <p><strong>Project Type:</strong> ${quotationData.project_type || 'N/As'}</p>
+        <p><strong>Project Type:</strong> ${quotationData.project_type || 'N/A'}</p>
         <p><strong>Timeline:</strong> ${quotationData.timeline || 'N/A'}</p>
         <p><strong>Additional Comments:</strong> ${quotationData.additional_comments || 'N/A'}</p>
         <p><strong>Total Amount:</strong> ${quotationData.total_amount ? `AED ${quotationData.total_amount}` : 'N/A'}</p>
@@ -210,7 +210,7 @@ router.post('/', async (req, res) => {
       material_color: data.material_color || data.materialColor || qd.materialColor || '',
       worktop_layout: data.worktop_layout || data.worktopLayout || qd.worktopLayout || '',
       timeline: data.timeline || qd.timeline || '',
-      project_type: data.project_type || qd.projectType || '',
+      project_type: data.project_type || data.projectType || qd.projectType || '',
       sink_option: data.sink_option || data.sinkOption || qd.sinkOption || '',
       additional_comments: data.additional_comments || qd.additionalComments || '',
       quote_data: JSON.stringify(data.quote_data || qd || {}),
