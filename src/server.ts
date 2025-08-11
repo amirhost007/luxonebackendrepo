@@ -7,28 +7,10 @@ dotenv.config();
 
 const app = express();
 
-const corsOriginsFromEnv = process.env.CORS_ORIGIN?.split(',').map(o => o.trim()) || [];
-
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174',
-  'https://quotation.theluxone.com',
-  'https://luxoneonlinequotation.vercel.app',
-  ...corsOriginsFromEnv,
-];
+// CORS is now configured to allow all origins
 
 const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allowed?: boolean) => void) => {
-    console.log('CORS Origin:', origin);
-    if (!origin) return callback(null, true); // Allow tools like Postman
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error(`Origin ${origin} not allowed by CORS`));
-  },
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
