@@ -17,10 +17,10 @@ console.log('DB config:', {
 });
 
 export const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: dbPassword,
-  database: process.env.DB_NAME || 'luxone_quotation_system',
+  host: process.env.DB_HOST || 'auth-db629.hstgr.io',
+  user: process.env.DB_USER || 'u184056080_luxoneusernam',
+  password: process.env.DB_PASSWORD || 'Luxone_quotation_@123321', 
+  database: process.env.DB_NAME || 'u184056080_luxone_quot',
   port: Number(process.env.DB_PORT || 3306),
   waitForConnections: true,
   connectionLimit: 10,
