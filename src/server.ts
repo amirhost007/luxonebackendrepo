@@ -7,13 +7,15 @@ dotenv.config();
 
 const app = express();
 
-// CORS Options
-// const corsOptions = {
-//   origin: true, // Reflect request origin automatically
-//   credentials: true,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-// };
+// CORS configuration to allow all origins
+const corsOptions = {
+  origin: '*', // Allow all origins
+  credentials: false, // Set to false when using origin: '*'
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
 
 // Middleware: Log every request
 app.use((req, res, next) => {
@@ -21,9 +23,22 @@ app.use((req, res, next) => {
   next();
 });
 
-// Enable CORS
-app.use(cors());
-app.options('*', cors()); // Handle preflight requests
+// Enable CORS with explicit configuration
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Handle preflight requests
+
+// Additional CORS headers for extra compatibility
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // Parse JSON
 app.use(express.json());
