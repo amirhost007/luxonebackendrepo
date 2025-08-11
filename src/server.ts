@@ -16,14 +16,14 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
   'https://quotation.theluxone.com',
-  'https://luxoneonlinequotation.vercel.app', // <--- add your Vercel frontend URL here
+  'https://luxoneonlinequotation.vercel.app',
   ...corsOriginsFromEnv,
 ];
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allowed?: boolean) => void) => {
     console.log('CORS Origin:', origin);
-    if (!origin) return callback(null, true); // allow REST tools, curl, postman, etc.
+    if (!origin) return callback(null, true); // Allow tools like Postman
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
@@ -34,25 +34,19 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-// Enable CORS with options
-app.use(cors(corsOptions));
-
-// Enable preflight OPTIONS requests for all routes
-app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));             // <---- Add this before routes
+app.options('*', cors(corsOptions));    // <---- Handle preflight OPTIONS requests
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.json({ message: 'Luxone Quotation System API', status: 'running' });
-});
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
 app.use('/api', routes);
 
-// CORS error handler
+app.use((req, res, next) => {
+  console.log(`[${req.method}] ${req.originalUrl}`);
+  next();
+});
+
+// Error handler for CORS origin rejections
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof Error && err.message.startsWith('Origin')) {
     return res.status(403).json({ error: err.message });
