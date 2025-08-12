@@ -168,6 +168,10 @@ router.get('/', async (req, res) => {
       ORDER BY created_at DESC
     `);
     console.log('Users fetched successfully:', rows);
+    console.log('Profit margins in fetched users:');
+    (rows as any[]).forEach((user: any) => {
+      console.log(`  - ${user.email}: profit_margin = ${user.profit_margin} (type: ${typeof user.profit_margin})`);
+    });
     res.json(rows);
   } catch (err) {
     console.error('Error fetching users:', err);
@@ -232,11 +236,16 @@ router.post('/', async (req, res) => {
       };
     }
     
+    console.log('About to insert user with profit_margin:', profit_margin, 'Type:', typeof profit_margin);
     await pool.query(
       'INSERT INTO users (email, password_hash, full_name, role, permissions, profit_margin) VALUES (?, ?, ?, ?, ?, ?)', 
       [email, hash, full_name || null, role, JSON.stringify(permissions), profit_margin]
     );
     console.log('User added successfully:', email);
+    
+    // Verify the insertion
+    const [insertedUser] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    console.log('Inserted user data:', (insertedUser as any[])[0]);
     res.json({ success: true });
   } catch (err) {
     console.error('Error adding user:', err);
