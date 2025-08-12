@@ -47,7 +47,8 @@ router.post('/login', async (req, res) => {
         id: user.id, 
         email: user.email, 
         full_name: user.full_name,
-        role: user.role 
+        role: user.role,
+        profit_margin: user.profit_margin
       } 
     });
   } catch (err) {
@@ -82,7 +83,8 @@ router.post('/admin-login', async (req, res) => {
         id: user.id, 
         email: user.email, 
         full_name: user.full_name,
-        role: user.role 
+        role: user.role,
+        profit_margin: user.profit_margin
       } 
     });
   } catch (err) {
@@ -117,7 +119,8 @@ router.post('/super-admin-login', async (req, res) => {
         id: user.id, 
         email: user.email, 
         full_name: user.full_name,
-        role: user.role 
+        role: user.role,
+        profit_margin: user.profit_margin
       } 
     });
   } catch (err) {
@@ -142,7 +145,7 @@ function authMiddleware(req: any, res: any, next: any) {
 // Verify token
 router.get('/verify', authMiddleware, async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT id, email, full_name, role, permissions FROM users WHERE id = ?', [(req as any).user.userId]);
+    const [rows] = await pool.query('SELECT id, email, full_name, role, permissions, profit_margin FROM users WHERE id = ?', [(req as any).user.userId]);
     const user = (rows as any[])[0];
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -160,7 +163,7 @@ router.get('/', async (req, res) => {
   try {
     console.log('Fetching users from database...');
     const [rows] = await pool.query(`
-      SELECT id, email, full_name, role, is_active, created_at, last_login, permissions 
+      SELECT id, email, full_name, role, is_active, created_at, last_login, permissions, profit_margin 
       FROM users 
       ORDER BY created_at DESC
     `);
@@ -175,8 +178,8 @@ router.get('/', async (req, res) => {
 // Add user (admin only)
 router.post('/', async (req, res) => {
   // TODO: Add admin auth check
-  const { email, password, full_name, role = 'user' } = req.body;
-  console.log('Adding user:', { email, full_name, role });
+  const { email, password, full_name, role = 'user', profit_margin = 20.00 } = req.body;
+  console.log('Adding user:', { email, full_name, role, profit_margin });
   
   if (!email || !password) {
     console.log('Missing email or password');
@@ -230,8 +233,8 @@ router.post('/', async (req, res) => {
     }
     
     await pool.query(
-      'INSERT INTO users (email, password_hash, full_name, role, permissions) VALUES (?, ?, ?, ?, ?)', 
-      [email, hash, full_name || null, role, JSON.stringify(permissions)]
+      'INSERT INTO users (email, password_hash, full_name, role, permissions, profit_margin) VALUES (?, ?, ?, ?, ?, ?)', 
+      [email, hash, full_name || null, role, JSON.stringify(permissions), profit_margin]
     );
     console.log('User added successfully:', email);
     res.json({ success: true });
@@ -244,7 +247,7 @@ router.post('/', async (req, res) => {
 // Edit user (admin only)
 router.put('/:id', async (req, res) => {
   // TODO: Add admin auth check
-  const { full_name, password, role } = req.body;
+  const { full_name, password, role, profit_margin } = req.body;
   const { id } = req.params;
   try {
     let updateQuery = 'UPDATE users SET full_name = ?';
@@ -299,6 +302,11 @@ router.put('/:id', async (req, res) => {
       
       updateQuery += ', permissions = ?';
       params.push(JSON.stringify(permissions));
+    }
+    
+    if (profit_margin !== undefined) {
+      updateQuery += ', profit_margin = ?';
+      params.push(profit_margin);
     }
     
     updateQuery += ' WHERE id = ?';

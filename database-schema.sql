@@ -22,6 +22,7 @@ CREATE TABLE users (
     is_active BOOLEAN DEFAULT TRUE,
     last_login TIMESTAMP NULL,
     permissions JSON NULL,
+    profit_margin DECIMAL(5,2) DEFAULT 20.00, -- Individual profit margin percentage
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
