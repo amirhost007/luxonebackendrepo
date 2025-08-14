@@ -455,4 +455,70 @@ router.get('/profit-margin-test', async (req, res) => {
   }
 });
 
+// Separate Profit Margin API for testing
+router.get('/profit-margin-api', async (req, res) => {
+  try {
+    console.log('🔍 Testing Profit Margin API...');
+    
+    // Test 1: Check if profit_margin column exists
+    const [columns] = await pool.query('DESCRIBE users');
+    const hasProfitMarginColumn = (columns as any[]).some((col: any) => col.Field === 'profit_margin');
+    
+    // Test 2: Get all users with profit margins
+    const [allUsers] = await pool.query(`
+      SELECT id, email, role, profit_margin 
+      FROM users 
+      ORDER BY id DESC
+    `);
+    
+    // Test 3: Get admin users specifically
+    const [adminUsers] = await pool.query(`
+      SELECT id, email, role, profit_margin 
+      FROM users 
+      WHERE role = 'admin' 
+      ORDER BY id DESC
+    `);
+    
+    // Test 4: Test the exact query that should be used
+    const [exactQueryResult] = await pool.query(`
+      SELECT id, email, full_name, role, is_active, created_at, last_login, permissions, profit_margin 
+      FROM users 
+      ORDER BY created_at DESC 
+      LIMIT 5
+    `);
+    
+    // Test 5: Check if any users have profit margins
+    const usersWithProfitMargin = (allUsers as any[]).filter(user => user.profit_margin !== null);
+    
+    res.json({
+      api_name: 'profit_margin_api',
+      timestamp: new Date().toISOString(),
+      database_status: {
+        has_profit_margin_column: hasProfitMarginColumn,
+        total_users: (allUsers as any[]).length,
+        admin_users: (adminUsers as any[]).length,
+        users_with_profit_margin: usersWithProfitMargin.length
+      },
+      sample_data: {
+        all_users: allUsers,
+        admin_users: adminUsers,
+        exact_query_result: exactQueryResult,
+        users_with_profit_margin: usersWithProfitMargin
+      },
+      query_analysis: {
+        exact_query_fields: (exactQueryResult as any[]).length > 0 ? Object.keys((exactQueryResult as any[])[0]) : [],
+        exact_query_has_profit_margin: (exactQueryResult as any[]).length > 0 ? 'profit_margin' in (exactQueryResult as any[])[0] : false,
+        profit_margin_values: (allUsers as any[]).map(user => ({ id: user.id, email: user.email, profit_margin: user.profit_margin }))
+      }
+    });
+  } catch (err) {
+    console.error('Profit margin API error:', err);
+    res.status(500).json({ 
+      error: 'Profit margin API failed', 
+      details: err instanceof Error ? err.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 export default router; 
