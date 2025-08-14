@@ -15,7 +15,7 @@ interface AuthenticatedRequest extends Request {
 router.post('/register', async (req, res) => {
   const { email, password, full_name, profit_margin } = req.body;
   try {
-    const [existingUsers] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    const [existingUsers] = await pool.query('SELECT * FROM users WHERE email = ?', [email]) as any[];
     if (existingUsers.length > 0) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -26,13 +26,13 @@ router.post('/register', async (req, res) => {
     const [result] = await pool.query(
       'INSERT INTO users (email, password_hash, full_name, profit_margin) VALUES (?, ?, ?, ?)',
       [email, hash, full_name || null, profitMarginValue]
-    );
+    ) as any[];
 
     // Fetch the full user with profit_margin from DB
     const [newUser] = await pool.query(
       'SELECT id, email, full_name, role, is_active, created_at, last_login, permissions, profit_margin FROM users WHERE id = ?',
       [result.insertId]
-    );
+    ) as any[];
 
     res.status(201).json({ message: 'User registered successfully', user: newUser[0] });
   } catch (err) {
@@ -45,7 +45,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]) as any[];
     if (users.length === 0) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -60,9 +60,9 @@ router.post('/login', async (req, res) => {
     const [freshUser] = await pool.query(
       'SELECT id, email, full_name, role, is_active, created_at, last_login, permissions, profit_margin FROM users WHERE id = ?',
       [user.id]
-    );
+    ) as any[];
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
     res.json({ message: 'Login successful', token, user: freshUser[0] });
   } catch (err) {
     console.error(err);
@@ -544,4 +544,4 @@ router.get('/profit-margin-api', async (req, res) => {
   }
 });
 
-export default router; 
+export default router;
