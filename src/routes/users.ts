@@ -356,6 +356,51 @@ router.get('/test', (req, res) => {
   res.json({ message: 'User API is working!' });
 });
 
+// Test endpoint to verify deployment
+router.get('/test-profit-margin', async (req, res) => {
+  try {
+    console.log('Testing profit margin query...');
+    
+    // Test 1: Check if profit_margin column exists
+    const [columns] = await pool.query('DESCRIBE users');
+    const hasProfitMarginColumn = columns.some((col: any) => col.Field === 'profit_margin');
+    
+    // Test 2: Query with profit_margin
+    const [users] = await pool.query(`
+      SELECT id, email, role, profit_margin 
+      FROM users 
+      LIMIT 3
+    `);
+    
+    // Test 3: Check the actual query being used
+    const testQuery = `
+      SELECT id, email, full_name, role, is_active, created_at, last_login, permissions, profit_margin 
+      FROM users 
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+    
+    const [testResult] = await pool.query(testQuery);
+    
+    res.json({
+      deployment_test: true,
+      timestamp: new Date().toISOString(),
+      has_profit_margin_column: hasProfitMarginColumn,
+      sample_users: users,
+      test_query_result: testResult,
+      test_query_used: testQuery,
+      user_fields: testResult.length > 0 ? Object.keys(testResult[0]) : []
+    });
+  } catch (err) {
+    console.error('Test endpoint error:', err);
+    res.status(500).json({ 
+      error: 'Test failed', 
+      details: err instanceof Error ? err.message : 'Unknown error',
+      deployment_test: false
+    });
+  }
+});
+
 // Database connection test
 router.get('/db-test', async (req, res) => {
   try {
