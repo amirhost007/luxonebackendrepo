@@ -412,4 +412,47 @@ router.get('/db-test', async (req, res) => {
   }
 });
 
+// Simple profit margin test endpoint
+router.get('/profit-margin-test', async (req, res) => {
+  try {
+    console.log('Testing profit margin functionality...');
+    
+    // Test 1: Check if profit_margin column exists
+    const [columns] = await pool.query('DESCRIBE users');
+    const hasProfitMarginColumn = (columns as any[]).some((col: any) => col.Field === 'profit_margin');
+    
+    // Test 2: Get a sample user with profit margin
+    const [users] = await pool.query(`
+      SELECT id, email, role, profit_margin 
+      FROM users 
+      WHERE role = 'admin' 
+      LIMIT 3
+    `);
+    
+    // Test 3: Check the main query
+    const [mainQueryResult] = await pool.query(`
+      SELECT id, email, full_name, role, is_active, created_at, last_login, permissions, profit_margin 
+      FROM users 
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `);
+    
+    res.json({
+      test: 'profit_margin_test',
+      timestamp: new Date().toISOString(),
+      has_profit_margin_column: hasProfitMarginColumn,
+      sample_users: users,
+      main_query_fields: (mainQueryResult as any[]).length > 0 ? Object.keys((mainQueryResult as any[])[0]) : [],
+      main_query_has_profit_margin: (mainQueryResult as any[]).length > 0 ? 'profit_margin' in (mainQueryResult as any[])[0] : false,
+      main_query_sample: (mainQueryResult as any[]).length > 0 ? (mainQueryResult as any[])[0] : null
+    });
+  } catch (err) {
+    console.error('Profit margin test error:', err);
+    res.status(500).json({ 
+      error: 'Test failed', 
+      details: err instanceof Error ? err.message : 'Unknown error'
+    });
+  }
+});
+
 export default router; 
