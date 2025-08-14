@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../db';
@@ -6,54 +6,67 @@ import { pool } from '../db';
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'luxone_secret';
 
+// Extend Request interface to include user
+interface AuthenticatedRequest extends Request {
+  user?: { id: number; userId?: number; email: string; role: string };
+}
+
 // Register
 router.post('/register', async (req, res) => {
-  const { email, password, full_name } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+  const { email, password, full_name, profit_margin } = req.body;
   try {
-    const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-    if ((existing as any[]).length > 0) return res.status(409).json({ error: 'Email already registered' });
+    const [existingUsers] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+
     const hash = await bcrypt.hash(password, 10);
-    await pool.query('INSERT INTO users (email, password_hash, full_name) VALUES (?, ?, ?)', [email, hash, full_name || null]);
-    res.json({ success: true });
+    const profitMarginValue = parseFloat(profit_margin) || 20.00; // default
+
+    const [result] = await pool.query(
+      'INSERT INTO users (email, password_hash, full_name, profit_margin) VALUES (?, ?, ?, ?)',
+      [email, hash, full_name || null, profitMarginValue]
+    );
+
+    // Fetch the full user with profit_margin from DB
+    const [newUser] = await pool.query(
+      'SELECT id, email, full_name, role, is_active, created_at, last_login, permissions, profit_margin FROM users WHERE id = ?',
+      [result.insertId]
+    );
+
+    res.status(201).json({ message: 'User registered successfully', user: newUser[0] });
   } catch (err) {
-    res.status(500).json({ error: 'Registration failed' });
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
 // Regular user login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   try {
-    const [rows] = await pool.query('SELECT * FROM users WHERE email = ? AND role = "user"', [email]);
-    const user = (rows as any[])[0];
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-    const match = await bcrypt.compare(password, user.password_hash);
-    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-    
-    // Update last login
-    await pool.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
-    
-    const token = jwt.sign({ 
-      userId: user.id, 
-      email: user.email, 
-      role: user.role 
-    }, JWT_SECRET, { expiresIn: '7d' });
-    
-    res.json({ 
-      token, 
-      user: { 
-        id: user.id, 
-        email: user.email, 
-        full_name: user.full_name,
-        role: user.role,
-        profit_margin: user.profit_margin
-      } 
-    });
+    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+    if (users.length === 0) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const user = users[0];
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Re-fetch fresh data from DB including profit_margin
+    const [freshUser] = await pool.query(
+      'SELECT id, email, full_name, role, is_active, created_at, last_login, permissions, profit_margin FROM users WHERE id = ?',
+      [user.id]
+    );
+
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    res.json({ message: 'Login successful', token, user: freshUser[0] });
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Login failed' });
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -72,7 +85,7 @@ router.post('/admin-login', async (req, res) => {
     await pool.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
     
     const token = jwt.sign({ 
-      userId: user.id, 
+      id: user.id, 
       email: user.email, 
       role: user.role 
     }, JWT_SECRET, { expiresIn: '7d' });
@@ -108,7 +121,7 @@ router.post('/super-admin-login', async (req, res) => {
     await pool.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
     
     const token = jwt.sign({ 
-      userId: user.id, 
+      id: user.id, 
       email: user.email, 
       role: user.role 
     }, JWT_SECRET, { expiresIn: '7d' });
@@ -130,12 +143,12 @@ router.post('/super-admin-login', async (req, res) => {
 });
 
 // Middleware to verify JWT
-function authMiddleware(req: any, res: any, next: any) {
+function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
-    const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
-    (req as any).user = decoded;
+    const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET) as { id: number; email: string; role: string };
+    req.user = decoded;
     next();
   } catch {
     res.status(401).json({ error: 'Invalid token' });
@@ -143,9 +156,14 @@ function authMiddleware(req: any, res: any, next: any) {
 }
 
 // Verify token
-router.get('/verify', authMiddleware, async (req, res) => {
+router.get('/verify', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const [rows] = await pool.query('SELECT id, email, full_name, role, permissions, profit_margin FROM users WHERE id = ?', [(req as any).user.userId]);
+    const userId = req.user?.id || req.user?.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'Invalid token structure' });
+    }
+    
+    const [rows] = await pool.query('SELECT id, email, full_name, role, permissions, profit_margin FROM users WHERE id = ?', [userId]);
     const user = (rows as any[])[0];
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -159,7 +177,6 @@ router.get('/verify', authMiddleware, async (req, res) => {
 
 // List all users (admin only)
 router.get('/', async (req, res) => {
-  // TODO: Add admin auth check
   try {
     console.log('Fetching users from database...');
     const [rows] = await pool.query(`
@@ -181,7 +198,6 @@ router.get('/', async (req, res) => {
 
 // Add user (admin only)
 router.post('/', async (req, res) => {
-  // TODO: Add admin auth check
   const { email, password, full_name, role = 'user', profit_margin = 20.00 } = req.body;
   console.log('Adding user:', { email, full_name, role, profit_margin });
   
@@ -236,10 +252,13 @@ router.post('/', async (req, res) => {
       };
     }
     
-    console.log('About to insert user with profit_margin:', profit_margin, 'Type:', typeof profit_margin);
+    // Ensure profit_margin is a valid number
+    const profitMarginValue = parseFloat(profit_margin) || 20.00;
+    console.log('About to insert user with profit_margin:', profitMarginValue, 'Type:', typeof profitMarginValue);
+    
     await pool.query(
       'INSERT INTO users (email, password_hash, full_name, role, permissions, profit_margin) VALUES (?, ?, ?, ?, ?, ?)', 
-      [email, hash, full_name || null, role, JSON.stringify(permissions), profit_margin]
+      [email, hash, full_name || null, role, JSON.stringify(permissions), profitMarginValue]
     );
     console.log('User added successfully:', email);
     
@@ -255,7 +274,6 @@ router.post('/', async (req, res) => {
 
 // Edit user (admin only)
 router.put('/:id', async (req, res) => {
-  // TODO: Add admin auth check
   const { full_name, password, role, profit_margin } = req.body;
   const { id } = req.params;
   try {
@@ -314,8 +332,9 @@ router.put('/:id', async (req, res) => {
     }
     
     if (profit_margin !== undefined) {
+      const profitMarginValue = parseFloat(profit_margin) || 20.00;
       updateQuery += ', profit_margin = ?';
-      params.push(profit_margin);
+      params.push(profitMarginValue);
     }
     
     updateQuery += ' WHERE id = ?';
@@ -331,7 +350,6 @@ router.put('/:id', async (req, res) => {
 
 // Delete user (admin only)
 router.delete('/:id', async (req, res) => {
-  // TODO: Add admin auth check
   const { id } = req.params;
   try {
     await pool.query('DELETE FROM users WHERE id = ?', [id]);
@@ -342,9 +360,14 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Get user's quotations
-router.get('/my-quotations', authMiddleware, async (req: any, res) => {
+router.get('/my-quotations', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM quotations WHERE user_id = ? ORDER BY created_at DESC', [req.user.userId]);
+    const userId = req.user?.id || req.user?.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'Invalid token structure' });
+    }
+    
+    const [rows] = await pool.query('SELECT * FROM quotations WHERE user_id = ? ORDER BY created_at DESC', [userId]);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch quotations' });
@@ -363,7 +386,7 @@ router.get('/test-profit-margin', async (req, res) => {
     
     // Test 1: Check if profit_margin column exists
     const [columns] = await pool.query('DESCRIBE users');
-    const hasProfitMarginColumn = columns.some((col: any) => col.Field === 'profit_margin');
+    const hasProfitMarginColumn = (columns as any[]).some((col: any) => col.Field === 'profit_margin');
     
     // Test 2: Query with profit_margin
     const [users] = await pool.query(`
@@ -389,7 +412,7 @@ router.get('/test-profit-margin', async (req, res) => {
       sample_users: users,
       test_query_result: testResult,
       test_query_used: testQuery,
-      user_fields: testResult.length > 0 ? Object.keys(testResult[0]) : []
+      user_fields: (testResult as any[]).length > 0 ? Object.keys((testResult as any[])[0]) : []
     });
   } catch (err) {
     console.error('Test endpoint error:', err);
