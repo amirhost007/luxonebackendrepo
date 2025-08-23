@@ -96,8 +96,9 @@ router.post('/admin-login', async (req, res) => {
         id: user.id, 
         email: user.email, 
         full_name: user.full_name,
-        role: user.role,
-        profit_margin: user.profit_margin
+        profit_margin: user.profit_margin,
+        role: user.role
+        
       } 
     });
   } catch (err) {
