@@ -90,17 +90,17 @@ router.post('/admin-login', async (req, res) => {
       role: user.role 
     }, JWT_SECRET, { expiresIn: '7d' });
     
-    res.json({ 
-      token, 
-      user: { 
-        id: user.id, 
-        email: user.email, 
-        full_name: user.full_name,
-        profit_margin: user.profit_margin,
-        role: user.role
+    // res.json({ 
+    //   token, 
+    //   user: { 
+    //     id: user.id, 
+    //     email: user.email, 
+    //     full_name: user.full_name,
+    //     profit_margin: user.profit_margin,
+    //     role: user.role
         
-      } 
-    });
+    //   } 
+    // });
   } catch (err) {
     console.error('Admin login error:', err);
     res.status(500).json({ error: 'Login failed' });
