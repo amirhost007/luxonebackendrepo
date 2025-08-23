@@ -45,7 +45,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]) as any[];
+    const [users] = await pool.query('SELECT id, email, password_hash, full_name, role, is_active, created_at, last_login, permissions, profit_margin FROM users WHERE email = ?', [email]) as any[];
     if (users.length === 0) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -75,7 +75,7 @@ router.post('/admin-login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   try {
-    const [rows] = await pool.query('SELECT * FROM users WHERE email = ? AND role = "admin"', [email]);
+    const [rows] = await pool.query('SELECT id, email, password_hash, full_name, role, is_active, created_at, last_login, permissions, profit_margin FROM users WHERE email = ? AND role = "admin"', [email]);
     const user = (rows as any[])[0];
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
     const match = await bcrypt.compare(password, user.password_hash);
@@ -111,7 +111,7 @@ router.post('/super-admin-login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   try {
-    const [rows] = await pool.query('SELECT * FROM users WHERE email = ? AND role = "super_admin"', [email]);
+    const [rows] = await pool.query('SELECT id, email, password_hash, full_name, role, is_active, created_at, last_login, permissions, profit_margin FROM users WHERE email = ? AND role = "super_admin"', [email]);
     const user = (rows as any[])[0];
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
     const match = await bcrypt.compare(password, user.password_hash);
